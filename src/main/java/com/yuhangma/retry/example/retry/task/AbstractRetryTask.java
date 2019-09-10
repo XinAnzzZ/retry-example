@@ -41,10 +41,16 @@ public abstract class AbstractRetryTask<T> implements Runnable, Comparable<Abstr
     /**
      * 任务执行方法
      *
-     * @return the return
+     * @return the result
      */
     public abstract T execute();
 
+    /**
+     * 实现了 {@code Runnable#run()} 方法，执行的操作是调用重试，然后将自己传进去。
+     * <p>
+     * 当次任务执行失败时，会被加入到 {@link AutoRetryService#RETRY_TASK_QUEUE} 队列中，等待被定时任务取出执行。
+     * 定时任务会将此任务放到 {@link AutoRetryService} 的线程池中，线程池会调用 task 的 run 方法，也就是此方法，执行重试。
+     */
     @Override
     public void run() {
         AutoRetryService.executeRetry(this);
@@ -53,16 +59,21 @@ public abstract class AbstractRetryTask<T> implements Runnable, Comparable<Abstr
     /**
      * 比较两者执行时间的先后
      *
-     * @param other 另外一个任务
+     * @param other the other task
      * @return 如果当前任务的下次执行时间先与另外一个，则返回 1，否则返回 -1。
-     * 即，如果当前任务的下次执行时间比 the other 早，则优先执行当前任务，否则执行另外一个任务。
+     * 即，如果当前任务的下次执行时间比 the other task 早，则优先执行当前任务，否则执行另外一个任务。
      */
     @Override
     public int compareTo(AbstractRetryTask other) {
         return this.nextExecuteTime.isBefore(other.nextExecuteTime) ? 1 : -1;
     }
 
-    public String getMethodName() {
+    /**
+     * 获取目标方法格式化后的名称
+     *
+     * @return the target method's formatted name
+     */
+    public String getTargetMethodName() {
         return String.format("%s.%s()", target.getDeclaringClass().getSimpleName(), target.getName());
     }
 }

@@ -51,6 +51,20 @@ public class AutoRetryService {
             rejectedExecutionHandler()
     );
 
+    /**
+     * 执行重试
+     * <p>
+     * 1、执行重试，如果失败，捕获所有异常进行判断。
+     * 2、判断是否达到最大重试次数，若达到，结束重试。
+     * 3、判断发生的异常是否是 exclude 中包含的异常，若是，则抛出次异常，结束重试。
+     * 4、判断发生的异常是否是 include 中包含的异常，若是，则设置任务的下次执行时间，
+     * // 并且将任务加入到 {@link AutoRetryService#RETRY_TASK_QUEUE} 中，等待定时任务调度。
+     * 5、若发生的异常级不是 exclude 中包含的异常，也不是 include 中包含的异常，则抛出异常，结束重试。
+     *
+     * @param task 重试的任务
+     * @param <T>  重试结果的泛型
+     * @return 重试结果
+     */
     public static <T> T executeRetry(AbstractRetryTask<T> task) {
         T result = null;
         int[] interval = task.getRetryInfo().interval();
@@ -58,23 +72,23 @@ public class AutoRetryService {
 
         try {
             result = task.execute();
-            log.info(String.format("{%s} 方法第 {%s} 次重试执行成功 ,耗时 {%s}",
-                    task.getMethodName(), task.getRetryTimes(), getInterval(start)));
+            log.info(String.format("{%s} 方法第 {%d} 次重试执行成功 ,耗时 {%d}",
+                    task.getTargetMethodName(), task.getRetryTimes(), getInterval(start)));
         } catch (RuntimeException e) {
-            Throwable cause = e;
-            while (cause.getCause() != null) {
-                cause = cause.getCause();
+            Throwable rootCause = e;
+            while (rootCause.getCause() != null) {
+                rootCause = rootCause.getCause();
             }
-            Class<? extends Throwable> exClass = cause.getClass();
+            Class<? extends Throwable> exClass = rootCause.getClass();
 
             int retryTimes = task.getRetryTimes();
             // 重试次数大于等于注解中标明的重试次数，结束重试
             if (retryTimes >= task.getRetryInfo().interval().length) {
-                log.error(String.format("{%s} 方法重试次数达到上限 {%s} 次，结束重试。Cause: %s(%s)",
-                        task.getMethodName(),
+                log.error(String.format("{%s} 方法重试次数达到上限 {%d} 次，结束重试。Cause: %s(%s)",
+                        task.getTargetMethodName(),
                         retryTimes,
                         exClass.getSimpleName(),
-                        cause.getMessage()));
+                        rootCause.getMessage()));
                 throw e;
             }
 
@@ -85,8 +99,8 @@ public class AutoRetryService {
 
             excludeExceptionClasses.forEach(excludeExceptionClass -> {
                 if (exClass.isAssignableFrom(excludeExceptionClass)) {
-                    log.error(String.format("{%s} 方法第 {%s} 次重试出现 exclude 异常：{%s} ,耗时 {%s}",
-                            task.getMethodName(),
+                    log.error(String.format("{%s} 方法第 {%d} 次重试出现 exclude 异常：{%s} ,耗时 {%d}",
+                            task.getTargetMethodName(),
                             retryTimes,
                             exClass.getSimpleName(),
                             getInterval(start)));
@@ -152,7 +166,7 @@ public class AutoRetryService {
     private static RejectedExecutionHandler rejectedExecutionHandler() {
         return (runnable, executor) -> {
             // 将被拒绝的任务入库，或者其他操作。
-            log.error("Task " + runnable.toString() + " rejected from " + executor.toString());
+            log.error(String.format("Task {%s} has been rejected from {%s}", runnable.toString(), executor.toString()));
         };
     }
 

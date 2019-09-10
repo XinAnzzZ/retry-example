@@ -13,7 +13,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-    @Retry(value = {OneException.class, TwoException.class, ThreeException.class})
+    @Retry(value = {OneException.class, TwoException.class, ThreeException.class},
+            interval = {2000, 3000, 4000})
     public void testRetry() {
 
     }
