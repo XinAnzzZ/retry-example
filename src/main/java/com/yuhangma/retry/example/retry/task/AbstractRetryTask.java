@@ -62,7 +62,7 @@ public abstract class AbstractRetryTask<T> implements Runnable, Comparable<Abstr
         return this.nextExecuteTime.isBefore(other.nextExecuteTime) ? 1 : -1;
     }
 
-    public String methodToString() {
+    public String getMethodName() {
         return String.format("%s.%s()", target.getDeclaringClass().getSimpleName(), target.getName());
     }
 }

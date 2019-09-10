@@ -59,7 +59,7 @@ public class AutoRetryService {
         try {
             result = task.execute();
             log.info(String.format("{%s} 方法第 {%s} 次重试执行成功 ,耗时 {%s}",
-                    task.methodToString(), task.getRetryTimes(), getInterval(start)));
+                    task.getMethodName(), task.getRetryTimes(), getInterval(start)));
         } catch (RuntimeException e) {
             Throwable cause = e;
             while (cause.getCause() != null) {
@@ -71,7 +71,7 @@ public class AutoRetryService {
             // 重试次数大于等于注解中标明的重试次数，结束重试
             if (retryTimes >= task.getRetryInfo().interval().length) {
                 log.error(String.format("{%s} 方法重试次数达到上限 {%s} 次，结束重试。Cause: %s(%s)",
-                        task.methodToString(),
+                        task.getMethodName(),
                         retryTimes,
                         exClass.getSimpleName(),
                         cause.getMessage()));
@@ -86,7 +86,7 @@ public class AutoRetryService {
             excludeExceptionClasses.forEach(excludeExceptionClass -> {
                 if (exClass.isAssignableFrom(excludeExceptionClass)) {
                     log.error(String.format("{%s} 方法第 {%s} 次重试出现 exclude 异常：{%s} ,耗时 {%s}",
-                            task.methodToString(),
+                            task.getMethodName(),
                             retryTimes,
                             exClass.getSimpleName(),
                             getInterval(start)));
