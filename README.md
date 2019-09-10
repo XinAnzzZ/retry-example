@@ -9,7 +9,7 @@
 ## Install
 
 ```sh
-npm install
+mvn org.springframework.boot:spring-boot-maven-plugin:run
 ```
 
 ## Author
