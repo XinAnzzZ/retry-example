@@ -19,7 +19,7 @@ import java.lang.annotation.Target;
  * 上面的使用示例代表着，当 {@code testRetry()} 方法遇到 {@code OneException} 或者 {@code TwoException} 的时候，
  * 会自动重试三次，重试的时间间隔分别是 2s、3s、4s。
  *
- * @author Moore
+ * @author 心安
  * @since 2019/08/30
  */
 @Target(ElementType.METHOD)

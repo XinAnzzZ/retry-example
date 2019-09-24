@@ -1,7 +1,7 @@
 package com.yuhangma.retry.example.exception;
 
 /**
- * @author Moore
+ * @author 心安
  * @since 2019/09/06
  */
 public class TwoException extends RuntimeException {

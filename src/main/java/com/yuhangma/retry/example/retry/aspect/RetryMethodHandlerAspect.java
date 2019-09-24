@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
  * 重试方法处理切面
  * Note：对使用了 {@link Retry} 注解的方法进行环绕切面，封装成 {@link AbstractRetryTask} 的子类交给重试 service 进行处理。
  *
- * @author Moore
+ * @author 心安
  * @since 2019/08/30
  */
 @Aspect
